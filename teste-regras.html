@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Teste das regras - Controle Certo</title>
+    <link rel="stylesheet" href="cc.css">
+    <style>
+        #resultados { list-style: none; padding: 0; display: grid; gap: 10px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <main id="conteudo">
+        <div class="pagina-titulo">
+            <h1>Teste das regras de segurança</h1>
+            <p>Confere, com a sua conta, se o banco aceita o que deve aceitar e recusa o que deve recusar. Você precisa estar logado na v2. Pode apagar esta página depois que tudo estiver certo.</p>
+        </div>
+
+        <section aria-labelledby="titulo-resultados">
+            <h2 id="titulo-resultados">Resultados</h2>
+            <div class="alerta alerta--info" id="aviso-login" hidden>
+                Você não está logado. <a href="login.html">Entre na v2</a> e volte para esta página.
+            </div>
+            <p id="resumo" class="texto-suave" aria-live="polite"></p>
+            <ol id="resultados"></ol>
+            <button type="button" class="btn" id="repetir" disabled>Rodar os testes</button>
+        </section>
+    </main>
+
+    <script type="module" src="teste-regras.js"></script>
+</body>
+</html>

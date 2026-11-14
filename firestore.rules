@@ -1,0 +1,99 @@
+rules_version = '2';
+
+// =========================================================
+// CONTROLE CERTO v2 - Regras de segurança do Firestore
+//
+// Princípios:
+//  1) Cada pessoa lê e altera SOMENTE o que está sob o seu próprio uid.
+//  2) Só são aceitos os campos esperados, com tipo e tamanho válidos.
+//  3) Mensagens de contato: qualquer pessoa logada pode ENVIAR,
+//     mas ninguém lê pelo site (você lê no console do Firebase).
+//  4) Tudo o que não está descrito aqui fica BLOQUEADO.
+// =========================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- funções auxiliares ----------
+    function logado() {
+      return request.auth != null;
+    }
+
+    function dono(uid) {
+      return logado() && request.auth.uid == uid;
+    }
+
+    function numeroEntre(v, minimo, maximo) {
+      return v is number && v >= minimo && v <= maximo;
+    }
+
+    function textoEntre(v, minimo, maximo) {
+      return v is string && v.size() >= minimo && v.size() <= maximo;
+    }
+
+    // ---------- validações de cada tipo de dado ----------
+    function perfilValido(d) {
+      return d.keys().hasOnly(['renda', 'foto', 'atualizadoEm'])
+        && (!('renda' in d) || numeroEntre(d.renda, 0, 999999999))
+        && (!('foto' in d) || textoEntre(d.foto, 0, 200000))
+        && (!('atualizadoEm' in d) || d.atualizadoEm is timestamp);
+    }
+
+    function despesaValida(d) {
+      return d.keys().hasOnly(['data', 'mes', 'descricao', 'categoria', 'valor', 'recorrente', 'criadoEm'])
+        && d.keys().hasAll(['data', 'mes', 'descricao', 'categoria', 'valor', 'recorrente'])
+        && textoEntre(d.data, 8, 10)
+        && textoEntre(d.mes, 7, 7)
+        && textoEntre(d.descricao, 1, 40)
+        && d.categoria in ['moradia', 'alimentacao', 'transporte', 'saude', 'educacao', 'lazer', 'compras', 'outros']
+        && numeroEntre(d.valor, 0.01, 999999999)
+        && d.recorrente is bool
+        && (!('criadoEm' in d) || d.criadoEm is timestamp);
+    }
+
+    function metaValida(d) {
+      return d.keys().hasOnly(['nome', 'objetivo', 'guardado', 'criadoEm'])
+        && d.keys().hasAll(['nome', 'objetivo', 'guardado'])
+        && textoEntre(d.nome, 1, 40)
+        && numeroEntre(d.objetivo, 0.01, 999999999)
+        && numeroEntre(d.guardado, 0, 999999999)
+        && d.guardado <= d.objetivo
+        && (!('criadoEm' in d) || d.criadoEm is timestamp);
+    }
+
+    function mensagemValida(d) {
+      return d.keys().hasOnly(['uid', 'nome', 'email', 'assunto', 'mensagem', 'criadoEm'])
+        && d.keys().hasAll(['uid', 'nome', 'email', 'assunto', 'mensagem', 'criadoEm'])
+        && d.uid == request.auth.uid
+        && textoEntre(d.nome, 1, 40)
+        && textoEntre(d.email, 3, 254)
+        && d.assunto in ['duvida', 'sugestao', 'problema', 'elogio']
+        && textoEntre(d.mensagem, 10, 500)
+        && d.criadoEm == request.time;
+    }
+
+    // ---------- dados de cada pessoa ----------
+    match /usuarios/{uid} {
+      allow read: if dono(uid);
+      allow create, update: if dono(uid) && perfilValido(request.resource.data);
+      allow delete: if false;
+
+      match /despesas/{despesaId} {
+        allow read: if dono(uid);
+        allow create, update: if dono(uid) && despesaValida(request.resource.data);
+        allow delete: if dono(uid);
+      }
+
+      match /metas/{metaId} {
+        allow read: if dono(uid);
+        allow create, update: if dono(uid) && metaValida(request.resource.data);
+        allow delete: if dono(uid);
+      }
+    }
+
+    // ---------- contato (só envio) ----------
+    match /mensagens/{mensagemId} {
+      allow create: if logado() && mensagemValida(request.resource.data);
+      allow read, update, delete: if false;
+    }
+  }
+}
