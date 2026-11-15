@@ -1,10 +1,10 @@
 /* =========================================================
-   CONTROLE CERTO - sobre.js
+   CONTROLE CERTO v2 - sobre.js
    Página "Sobre":
-   1) formulário de contato (demonstração, guarda no navegador);
+   1) formulário de contato (a mensagem vai para o banco);
    2) edição da conta: foto e nome de exibição;
    3) apagar os dados financeiros.
-   Depende de cc.js (window.CC).
+   Depende de cc.js (window.CC) e nuvem.js (Firebase).
    ========================================================= */
 (function () {
     "use strict";
@@ -12,17 +12,17 @@
     if (!window.CC) return;
 
     const {
-        CHAVES, LIMITE_TEXTO, REGEX_FOTO,
-        aoCarregar, lerJSON, salvarJSON, salvarTexto, lerTexto, remover,
-        limparTexto, validarEmail, normalizarEmail, mostrarToast,
-        aplicarFoto, aplicarNome, usuarioAtual, gerarId
+        LIMITE_TEXTO, REGEX_FOTO,
+        aoCarregar, limparTexto, validarEmail, normalizarEmail, mostrarToast,
+        aplicarFoto, aplicarNome, usuarioAtual,
+        salvarFoto, fotoAtual, apagarDadosFinanceiros
     } = window.CC;
 
-    const CHAVE_MENSAGENS = "v2_mensagensContato";
-    const MAX_MENSAGENS_GUARDADAS = 20;
     const MENSAGEM_MIN = 10;
     const MENSAGEM_MAX = 500;
-    const FOTO_MAX_BYTES = 1024 * 1024; // 1 MB
+    const FOTO_ARQUIVO_MAX_BYTES = 5 * 1024 * 1024;   // arquivo escolhido
+    const FOTO_LADO = 256;                            // a foto é reduzida para 256 x 256
+    const FOTO_MAX_CARACTERES = 150000;               // limite das regras do banco: 200000
     const TIPOS_FOTO = ["image/jpeg", "image/png", "image/webp"];
     const ASSUNTOS = ["duvida", "sugestao", "problema", "elogio"];
 
@@ -51,7 +51,7 @@
         atualizarContador();
     }
 
-    function aoEnviarContato(evento) {
+    async function aoEnviarContato(evento) {
         evento.preventDefault();
         const form = evento.currentTarget;
 
@@ -83,76 +83,120 @@
             return;
         }
 
-        const guardadas = lerJSON(CHAVE_MENSAGENS, []);
-        const novaLista = [
-            ...guardadas,
-            { id: gerarId(), data: new Date().toISOString(), nome, email, assunto, mensagem }
-        ].slice(-MAX_MENSAGENS_GUARDADAS);
+        const botao = form.querySelector("button[type='submit']");
+        botao.disabled = true;
 
-        if (!salvarJSON(CHAVE_MENSAGENS, novaLista)) {
-            mostrarToast("Não foi possível registrar a mensagem: o armazenamento do navegador está indisponível.", "erro");
+        try {
+            const nuvem = await window.CC.obterNuvem();
+            await nuvem.enviarContato({ nome, email, assunto, mensagem });
+        } catch (erro) {
+            console.warn(erro);
+            mostrarToast("Não foi possível enviar a mensagem. Verifique a conexão e tente de novo.", "erro");
             return;
+        } finally {
+            botao.disabled = false;
         }
 
         form.reset();
         preencherDadosDoContato();
-        el.msgContato.textContent = "Mensagem registrada com sucesso! Obrigado pelo contato (demonstração: ela fica salva só neste navegador).";
+        el.msgContato.textContent = "Mensagem enviada! Obrigado pelo contato.";
         el.msgContato.hidden = false;
-        mostrarToast("Mensagem registrada.");
+        mostrarToast("Mensagem enviada.");
     }
 
     // ==========================================
     // 2) FOTO DE PERFIL
     // ==========================================
     function atualizarBotaoRemoverFoto() {
-        el.removerFoto.disabled = lerTexto(CHAVES.foto) === "";
+        el.removerFoto.disabled = fotoAtual() === "";
     }
 
-    function aoEscolherFoto(evento) {
+    function lerComoDataUrl(arquivo) {
+        return new Promise((resolver, rejeitar) => {
+            const leitor = new FileReader();
+            leitor.onload = () => resolver(String(leitor.result));
+            leitor.onerror = () => rejeitar(new Error("leitura"));
+            leitor.readAsDataURL(arquivo);
+        });
+    }
+
+    // Recorta o centro, reduz para 256 x 256 e converte em JPEG (poucos KB)
+    function reduzirImagem(dataUrl) {
+        return new Promise((resolver, rejeitar) => {
+            const imagem = new Image();
+
+            imagem.onload = () => {
+                const menor = Math.min(imagem.width, imagem.height);
+                if (!menor) {
+                    rejeitar(new Error("imagem vazia"));
+                    return;
+                }
+
+                const tela = document.createElement("canvas");
+                tela.width = FOTO_LADO;
+                tela.height = FOTO_LADO;
+
+                const contexto = tela.getContext("2d");
+                contexto.fillStyle = "#1E293B";      // fundo para imagens com transparência
+                contexto.fillRect(0, 0, FOTO_LADO, FOTO_LADO);
+                contexto.drawImage(
+                    imagem,
+                    (imagem.width - menor) / 2, (imagem.height - menor) / 2, menor, menor,
+                    0, 0, FOTO_LADO, FOTO_LADO
+                );
+                resolver(tela.toDataURL("image/jpeg", 0.82));
+            };
+
+            imagem.onerror = () => rejeitar(new Error("imagem inválida"));
+            imagem.src = dataUrl;
+        });
+    }
+
+    async function aoEscolherFoto(evento) {
         const entrada = evento.target;
         const arquivo = entrada.files && entrada.files[0];
         el.fotoErro.textContent = "";
         if (!arquivo) return;
+        entrada.value = "";   // permite escolher o mesmo arquivo de novo
 
         if (!TIPOS_FOTO.includes(arquivo.type)) {
             el.fotoErro.textContent = "Escolha uma imagem JPG, PNG ou WebP.";
-            entrada.value = "";
             return;
         }
-        if (arquivo.size > FOTO_MAX_BYTES) {
-            el.fotoErro.textContent = "A imagem deve ter até 1 MB. Escolha uma menor.";
-            entrada.value = "";
+        if (arquivo.size > FOTO_ARQUIVO_MAX_BYTES) {
+            el.fotoErro.textContent = "A imagem deve ter até 5 MB. Escolha uma menor.";
             return;
         }
 
-        const leitor = new FileReader();
+        let reduzida;
+        try {
+            reduzida = await reduzirImagem(await lerComoDataUrl(arquivo));
+        } catch (erro) {
+            el.fotoErro.textContent = "Não foi possível usar esta imagem. Tente outra.";
+            return;
+        }
 
-        leitor.onload = () => {
-            const resultado = String(leitor.result);
+        if (!REGEX_FOTO.test(reduzida) || reduzida.length > FOTO_MAX_CARACTERES) {
+            el.fotoErro.textContent = "Não foi possível usar esta imagem. Tente outra.";
+            return;
+        }
 
-            if (!REGEX_FOTO.test(resultado)) {
-                el.fotoErro.textContent = "Não foi possível usar esta imagem. Tente outra.";
-            } else if (!salvarTexto(CHAVES.foto, resultado)) {
-                el.fotoErro.textContent = "Não há espaço para salvar a foto. Tente uma imagem menor.";
-            } else {
-                aplicarFoto(resultado);
-                atualizarBotaoRemoverFoto();
-                mostrarToast("Foto atualizada.");
-            }
-            entrada.value = "";
-        };
+        if (!(await salvarFoto(reduzida))) return;   // o cc.js já avisou o motivo
 
-        leitor.onerror = () => {
-            el.fotoErro.textContent = "Não foi possível ler o arquivo. Tente novamente.";
-            entrada.value = "";
-        };
-
-        leitor.readAsDataURL(arquivo);
+        aplicarFoto(reduzida);
+        atualizarBotaoRemoverFoto();
+        mostrarToast("Foto atualizada.");
     }
 
-    function aoRemoverFoto() {
+    async function aoRemoverFoto() {
         el.fotoErro.textContent = "";
-        remover(CHAVES.foto);
+        el.removerFoto.disabled = true;
+
+        if (!(await salvarFoto(""))) {
+            atualizarBotaoRemoverFoto();
+            return;
+        }
+
         aplicarFoto("");
         atualizarBotaoRemoverFoto();
         mostrarToast("Foto removida.");
@@ -195,14 +239,17 @@
     // ==========================================
     // 4) APAGAR DADOS FINANCEIROS
     // ==========================================
-    function aoApagarDados() {
+    async function aoApagarDados() {
         const confirmou = window.confirm(
-            "Apagar a renda, as despesas e as metas? Essa ação não pode ser desfeita."
+            "Apagar a renda, as despesas e as metas da sua conta? Essa ação não pode ser desfeita."
         );
         if (!confirmou) return;
 
-        [CHAVES.renda, CHAVES.despesas, CHAVES.metas].forEach(remover);
-        mostrarToast("Dados financeiros apagados.");
+        el.apagarDados.disabled = true;
+        const apagou = await apagarDadosFinanceiros();
+        el.apagarDados.disabled = false;
+
+        if (apagou) mostrarToast("Dados financeiros apagados.");
     }
 
     // ==========================================
@@ -218,6 +265,7 @@
         el.fotoErro = document.getElementById("foto-erro");
         el.removerFoto = document.getElementById("foto-remover");
         el.nomeConta = document.getElementById("editar-nome");
+        el.apagarDados = document.getElementById("apagar-dados");
 
         preencherDadosDoContato();
         el.nomeConta.value = usuarioAtual();
@@ -229,6 +277,6 @@
         document.getElementById("foto-input").addEventListener("change", aoEscolherFoto);
         el.removerFoto.addEventListener("click", aoRemoverFoto);
         document.getElementById("form-conta").addEventListener("submit", aoSalvarNome);
-        document.getElementById("apagar-dados").addEventListener("click", aoApagarDados);
+        el.apagarDados.addEventListener("click", aoApagarDados);
     });
 })();

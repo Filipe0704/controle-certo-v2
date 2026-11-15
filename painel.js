@@ -237,8 +237,9 @@
     // ==========================================
     // RENDA MENSAL
     // ==========================================
-    function aoSalvarRenda(evento) {
+    async function aoSalvarRenda(evento) {
         evento.preventDefault();
+        const botao = evento.currentTarget.querySelector("button[type='submit']");
         definirErro(el.inputRenda, "");
 
         const renda = parseValor(el.inputRenda.value);
@@ -248,10 +249,10 @@
             return;
         }
 
-        if (!salvarRenda(renda)) {
-            mostrarToast("Não foi possível salvar: o armazenamento do navegador está indisponível.", "erro");
-            return;
-        }
+        botao.disabled = true;
+        const gravou = await salvarRenda(renda);
+        botao.disabled = false;
+        if (!gravou) return;
 
         el.inputRenda.value = renda.toFixed(2).replace(".", ",");
         mostrarToast("Renda mensal salva.");
@@ -261,7 +262,7 @@
     // ==========================================
     // NOVA DESPESA
     // ==========================================
-    function aoCadastrarDespesa(evento) {
+    async function aoCadastrarDespesa(evento) {
         evento.preventDefault();
         const form = evento.currentTarget;
         limparErros(form);
@@ -299,10 +300,11 @@
         };
 
         const novaLista = [...despesas, nova];
-        if (!salvarDespesas(novaLista)) {
-            mostrarToast("Não foi possível salvar: o armazenamento do navegador está indisponível.", "erro");
-            return;
-        }
+        const botao = form.querySelector("button[type='submit']");
+        botao.disabled = true;
+        const gravou = await salvarDespesas(novaLista);
+        botao.disabled = false;
+        if (!gravou) return;
         despesas = novaLista;
 
         form.reset();
@@ -315,7 +317,7 @@
     // ==========================================
     // EXCLUIR DESPESA
     // ==========================================
-    function aoClicarTabela(evento) {
+    async function aoClicarTabela(evento) {
         const botao = evento.target.closest("button[data-id]");
         if (!botao) return;
 
@@ -326,8 +328,10 @@
         if (!confirmou) return;
 
         const novaLista = despesas.filter(d => d.id !== despesa.id);
-        if (!salvarDespesas(novaLista)) {
-            mostrarToast("Não foi possível excluir: o armazenamento do navegador está indisponível.", "erro");
+        botao.disabled = true;
+        const gravou = await salvarDespesas(novaLista);
+        if (!gravou) {
+            botao.disabled = false;
             return;
         }
         despesas = novaLista;

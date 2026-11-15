@@ -18,12 +18,16 @@ import {
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
     signOut, sendPasswordResetEmail, updateProfile
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+import {
+    getFirestore, doc, getDoc, getDocs, setDoc, collection, addDoc, writeBatch, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const LIMITE_NOME = 40;
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const banco = getFirestore(app);
 auth.languageCode = "pt-BR";   // e-mails de redefinição de senha em português
 
 // ==========================================
@@ -55,7 +59,9 @@ const MENSAGENS_DE_ERRO = {
     "auth/user-disabled": "Esta conta foi desativada.",
     "auth/operation-not-allowed": "O login por e-mail e senha não está ativado no Firebase.",
     "auth/missing-password": "Digite sua senha.",
-    "auth/requires-recent-login": "Por segurança, entre de novo para fazer essa alteração."
+    "auth/requires-recent-login": "Por segurança, entre de novo para fazer essa alteração.",
+    "permission-denied": "Sem permissão para essa ação. Entre na sua conta de novo.",
+    "tempo-esgotado": "O serviço demorou a responder. Tente de novo."
 };
 
 export function traduzirErro(erro) {
@@ -94,6 +100,122 @@ async function atualizarNome(nome) {
     window.CC.sessaoResolvida(resumoDoUsuario(auth.currentUser));
 }
 
+
+// ==========================================
+// DADOS (Firestore): usuarios/{uid}, .../despesas, .../metas, mensagens
+// As regras de segurança (firestore.rules) deixam cada pessoa
+// acessar somente o que está sob o próprio uid.
+// ==========================================
+const TEMPO_LIMITE_MS = 12000;
+const TAMANHO_LOTE = 400;          // o Firestore aceita até 500 operações por lote
+
+function comLimite(promessa) {
+    return Promise.race([
+        promessa,
+        new Promise((_, rejeitar) => setTimeout(() => rejeitar({ code: "tempo-esgotado" }), TEMPO_LIMITE_MS))
+    ]);
+}
+
+function uidAtual() {
+    if (!auth.currentUser) throw { code: "sem-login" };
+    return auth.currentUser.uid;
+}
+
+function caminhoDe(uid, ...partes) {
+    return doc(banco, "usuarios", uid, ...partes);
+}
+
+// "15/10/2026" -> "2026-10"
+function mesDaData(data) {
+    return `${data.slice(6, 10)}-${data.slice(3, 5)}`;
+}
+
+function camposDaDespesa(d) {
+    return {
+        data: d.data,
+        mes: mesDaData(d.data),
+        descricao: d.descricao,
+        categoria: d.categoria,
+        valor: d.valor,
+        recorrente: Boolean(d.recorrente)
+    };
+}
+
+function camposDaMeta(m) {
+    return { nome: m.nome, objetivo: m.objetivo, guardado: m.guardado };
+}
+
+async function executarEmLotes(operacoes) {
+    for (let i = 0; i < operacoes.length; i += TAMANHO_LOTE) {
+        const lote = writeBatch(banco);
+        operacoes.slice(i, i + TAMANHO_LOTE).forEach(operacao => operacao(lote));
+        await comLimite(lote.commit());
+    }
+}
+
+async function carregarDados() {
+    const uid = uidAtual();
+    const [perfil, despesas, metas] = await comLimite(Promise.all([
+        getDoc(caminhoDe(uid)),
+        getDocs(collection(banco, "usuarios", uid, "despesas")),
+        getDocs(collection(banco, "usuarios", uid, "metas"))
+    ]));
+
+    const dadosDoPerfil = perfil.exists() ? perfil.data() : {};
+    return {
+        renda: typeof dadosDoPerfil.renda === "number" ? dadosDoPerfil.renda : 0,
+        foto: typeof dadosDoPerfil.foto === "string" ? dadosDoPerfil.foto : "",
+        despesas: despesas.docs.map(item => ({ id: item.id, ...item.data() })),
+        metas: metas.docs.map(item => ({ id: item.id, ...item.data() }))
+    };
+}
+
+async function salvarRenda(valor) {
+    await comLimite(setDoc(caminhoDe(uidAtual()), { renda: valor, atualizadoEm: serverTimestamp() }, { merge: true }));
+}
+
+async function salvarFoto(foto) {
+    await comLimite(setDoc(caminhoDe(uidAtual()), { foto, atualizadoEm: serverTimestamp() }, { merge: true }));
+}
+
+async function gravarDespesas(gravar, apagar) {
+    const uid = uidAtual();
+    const operacoes = [
+        ...gravar.map(d => lote => lote.set(caminhoDe(uid, "despesas", d.id), camposDaDespesa(d))),
+        ...apagar.map(id => lote => lote.delete(caminhoDe(uid, "despesas", id)))
+    ];
+    await executarEmLotes(operacoes);
+}
+
+async function gravarMetas(gravar, apagar) {
+    const uid = uidAtual();
+    const operacoes = [
+        ...gravar.map(m => lote => lote.set(caminhoDe(uid, "metas", m.id), camposDaMeta(m))),
+        ...apagar.map(id => lote => lote.delete(caminhoDe(uid, "metas", id)))
+    ];
+    await executarEmLotes(operacoes);
+}
+
+async function apagarDadosFinanceiros() {
+    const uid = uidAtual();
+    const [despesas, metas] = await comLimite(Promise.all([
+        getDocs(collection(banco, "usuarios", uid, "despesas")),
+        getDocs(collection(banco, "usuarios", uid, "metas"))
+    ]));
+
+    await executarEmLotes([
+        ...despesas.docs.map(item => lote => lote.delete(item.ref)),
+        ...metas.docs.map(item => lote => lote.delete(item.ref))
+    ]);
+    await salvarRenda(0);
+}
+
+async function enviarContato({ nome, email, assunto, mensagem }) {
+    await comLimite(addDoc(collection(banco, "mensagens"), {
+        uid: uidAtual(), nome, email, assunto, mensagem, criadoEm: serverTimestamp()
+    }));
+}
+
 // ==========================================
 // INICIALIZAÇÃO: entrega a API e acompanha o login
 // ==========================================
@@ -104,7 +226,14 @@ window.CC.registrarNuvem({
     sair,
     recuperarSenha,
     atualizarNome,
-    traduzirErro
+    traduzirErro,
+    carregarDados,
+    salvarRenda,
+    salvarFoto,
+    gravarDespesas,
+    gravarMetas,
+    apagarDadosFinanceiros,
+    enviarContato
 });
 
 onAuthStateChanged(auth, usuario => {

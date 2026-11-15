@@ -43,7 +43,6 @@
                         <li><a class="menu__link" href="index.html"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Painel</a></li>
                         <li><a class="menu__link" href="metas.html"><i class="fa-solid fa-bullseye" aria-hidden="true"></i> Metas</a></li>
                         <li><a class="menu__link" href="relatorios.html"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Relatórios</a></li>
-                        <li><a class="menu__link" href="galeria.html"><i class="fa-solid fa-images" aria-hidden="true"></i> Galeria</a></li>
                         <li><a class="menu__link" href="sobre.html" aria-current="page"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Sobre</a></li>
                     </ul>
     
@@ -73,7 +72,7 @@
                     <h2 id="titulo-sobre">O que é o Controle Certo?</h2>
                     <p>O Controle Certo é um sistema de gestão financeira pessoal criado para ajudar você a entender para onde vai o seu dinheiro e a alcançar seus objetivos, sem planilhas complicadas.</p>
                     <p>Você registra suas despesas por categoria, acompanha o saldo do mês, cria metas e compara os seus gastos com a regra 50/30/20: metade da renda para necessidades, 30% para desejos e 20% para poupança.</p>
-                    <p>Trata-se de um projeto acadêmico da Avaliação A2, desenvolvido com HTML5, CSS3 e JavaScript puro, com o gráfico feito em Chart.js e os ícones da Font Awesome. Os seus dados ficam salvos apenas neste navegador.</p>
+                    <p>Trata-se de um projeto acadêmico da Avaliação A2, desenvolvido com HTML5, CSS3 e JavaScript puro, com o gráfico feito em Chart.js e os ícones da Font Awesome. Os seus dados ficam salvos com segurança na sua conta, e só você os acessa.</p>
                     <!-- Para identificar a equipe, acrescente aqui um parágrafo com os nomes, o curso e a disciplina. -->
                 </div>
                 <ul class="sobre-lista">
@@ -90,12 +89,12 @@
                         <span><strong>Relatórios e regra 50/30/20</strong><br><span class="texto-suave">Compare seus gastos com os limites ideais.</span></span>
                     </li>
                     <li>
-                        <i class="fa-solid fa-images" aria-hidden="true"></i>
-                        <span><strong>Galeria</strong><br><span class="texto-suave">Ilustrações com filtro e visualização ampliada.</span></span>
+                        <i class="fa-solid fa-cloud" aria-hidden="true"></i>
+                        <span><strong>Dados na nuvem</strong><br><span class="texto-suave">Suas informações ficam salvas na sua conta e acompanham você em qualquer aparelho.</span></span>
                     </li>
                     <li>
                         <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                        <span><strong>Login seguro</strong><br><span class="texto-suave">A senha é guardada com hash PBKDF2, nunca em texto.</span></span>
+                        <span><strong>Login seguro</strong><br><span class="texto-suave">O login é feito pelo Firebase, que protege as senhas. Cada pessoa vê só os próprios dados.</span></span>
                     </li>
                     <li>
                         <i class="fa-solid fa-mobile-screen" aria-hidden="true"></i>
@@ -108,7 +107,7 @@
         <section aria-labelledby="titulo-contato">
             <h2 id="titulo-contato">Fale com a gente</h2>
             <div class="alerta alerta--info">
-                Este formulário é uma demonstração: não há servidor de e-mail, então a mensagem fica registrada apenas neste navegador.
+                Sua mensagem é enviada com segurança para a equipe do projeto. Respondemos pelo e-mail informado.
             </div>
             <div class="alerta alerta--sucesso" id="msg-contato" role="alert" hidden></div>
 
@@ -173,7 +172,7 @@
                         <i class="fa-solid fa-trash" aria-hidden="true"></i> Remover foto
                     </button>
                 </div>
-                <p class="campo__ajuda" id="foto-ajuda">Use uma imagem JPG, PNG ou WebP com até 1 MB.</p>
+                <p class="campo__ajuda" id="foto-ajuda">Use uma imagem JPG, PNG ou WebP com até 5 MB. Ela será recortada e reduzida automaticamente.</p>
                 <p class="campo-erro" id="foto-erro" role="alert"></p>
             </div>
 
@@ -195,7 +194,7 @@
 
         <section aria-labelledby="titulo-dados">
             <h2 id="titulo-dados">Dados financeiros</h2>
-            <p class="texto-suave">Apague a renda, as despesas e as metas salvas neste navegador. Sua conta e sua foto continuam como estão. Essa ação não pode ser desfeita.</p>
+            <p class="texto-suave">Apague a renda, as despesas e as metas salvas na sua conta. Sua conta e sua foto continuam como estão. Essa ação não pode ser desfeita.</p>
             <button type="button" class="btn btn--perigo" id="apagar-dados">
                 <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Apagar meus dados financeiros
             </button>

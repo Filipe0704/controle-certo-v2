@@ -163,8 +163,9 @@
     // ==========================================
     // CRIAR META
     // ==========================================
-    function aoCriarMeta(evento) {
+    async function aoCriarMeta(evento) {
         evento.preventDefault();
+        const form = evento.currentTarget;
 
         const campoNome = document.getElementById("nome-meta");
         const campoValor = document.getElementById("valor-meta");
@@ -194,13 +195,14 @@
         }
 
         const novaLista = [...metas, { id: gerarId(), nome, objetivo, guardado: 0 }];
-        if (!salvarMetas(novaLista)) {
-            mostrarToast("Não foi possível salvar: o armazenamento do navegador está indisponível.", "erro");
-            return;
-        }
+        const botaoCriar = form.querySelector("button[type='submit']");
+        botaoCriar.disabled = true;
+        const gravou = await salvarMetas(novaLista);
+        botaoCriar.disabled = false;
+        if (!gravou) return;
         metas = novaLista;
 
-        evento.currentTarget.reset();
+        form.reset();
         renderizar();
         mostrarToast(`Meta "${nome}" criada.`);
         campoNome.focus();
@@ -209,7 +211,7 @@
     // ==========================================
     // GUARDAR DINHEIRO NUMA META
     // ==========================================
-    function aoGuardar(evento) {
+    async function aoGuardar(evento) {
         const form = evento.target.closest("form[data-id]");
         if (!form) return;
         evento.preventDefault();
@@ -230,8 +232,11 @@
         const novoGuardado = arredondar(Math.min(meta.objetivo, meta.guardado + valor));
         const novaLista = metas.map(m => (m.id === meta.id ? { ...m, guardado: novoGuardado } : m));
 
-        if (!salvarMetas(novaLista)) {
-            mostrarToast("Não foi possível salvar: o armazenamento do navegador está indisponível.", "erro");
+        const botaoGuardar = form.querySelector("button[type='submit']");
+        botaoGuardar.disabled = true;
+        const gravou = await salvarMetas(novaLista);
+        if (!gravou) {
+            botaoGuardar.disabled = false;
             return;
         }
         metas = novaLista;
@@ -252,7 +257,7 @@
     // ==========================================
     // EXCLUIR META
     // ==========================================
-    function aoClicarLista(evento) {
+    async function aoClicarLista(evento) {
         const botao = evento.target.closest("button[data-excluir]");
         if (!botao) return;
 
@@ -263,8 +268,10 @@
         if (!confirmou) return;
 
         const novaLista = metas.filter(m => m.id !== meta.id);
-        if (!salvarMetas(novaLista)) {
-            mostrarToast("Não foi possível excluir: o armazenamento do navegador está indisponível.", "erro");
+        botao.disabled = true;
+        const gravou = await salvarMetas(novaLista);
+        if (!gravou) {
+            botao.disabled = false;
             return;
         }
         metas = novaLista;

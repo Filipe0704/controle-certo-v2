@@ -19,13 +19,10 @@
     // IMPORTANTE: a v1 e a v2 ficam no mesmo domínio (github.io) e, por isso,
     // compartilham o localStorage. A v2 usa o prefixo "v2_" para NUNCA ler,
     // alterar ou apagar os dados da versão estável.
+    // Na v2 os dados financeiros ficam no Firestore (nuvem). No navegador
+    // guardamos só o nome para exibir. Prefixo "v2_" para nunca tocar na v1.
     const CHAVES = {
-        conta: "v2_conta",
-        sessao: "v2_sessao",
-        renda: "v2_renda",
-        despesas: "v2_despesas",
-        metas: "v2_metas",
-        foto: "v2_foto"
+        sessao: "v2_sessao"
     };
 
     const LIMITE_TEXTO = 40;
@@ -172,22 +169,15 @@
 
     async function sair() {
         try {
-            const nuvem = await Promise.race([
-                obterNuvem(),
-                new Promise(resolver => setTimeout(() => resolver(null), 3000))
-            ]);
-            if (nuvem) await nuvem.sair();
+            // Nada pode impedir a pessoa de sair: espera no máximo 3 segundos no total
+            const limite = new Promise(resolver => setTimeout(() => resolver(null), 3000));
+            const nuvem = await Promise.race([obterNuvem(), limite]);
+            if (nuvem) await Promise.race([nuvem.sair(), limite]);
         } catch (erro) {
             console.warn("Não foi possível encerrar a sessão na nuvem.", erro);
         }
         remover(CHAVES.sessao);
         window.CC.irPara(PAGINA_LOGIN, false);
-    }
-
-    // Apaga tudo o que pertence à conta (usado ao substituir a conta)
-    function limparDadosUsuario() {
-        [CHAVES.sessao, CHAVES.renda, CHAVES.despesas, CHAVES.metas, CHAVES.foto]
-            .forEach(remover);
     }
 
     // ==========================================
@@ -269,30 +259,80 @@
         };
     }
 
-    function lerDespesas() {
-        const brutas = lerJSON(CHAVES.despesas, []);
-        const lista = [];
-        let alterou = false;
+    // ---- Dados da pessoa logada, carregados do Firestore ao abrir cada página ----
+    const dados = { renda: 0, foto: "", despesas: [], metas: [] };
+    let promessaDados = null;
 
-        brutas.forEach(bruta => {
-            const despesa = normalizarDespesa(bruta);
-            if (!despesa) {
-                alterou = true;
-                return;
-            }
-            const precisaAtualizar = bruta.id !== despesa.id
-                || bruta.categoria !== despesa.categoria
-                || typeof bruta.valor !== "number";
-            if (precisaAtualizar) alterou = true;
-            lista.push(despesa);
-        });
-
-        if (alterou) salvarJSON(CHAVES.despesas, lista);
-        return lista;
+    function mensagemDeErroDeGravacao(erro) {
+        const codigo = erro && erro.code;
+        if (codigo === "sem-conexao" || (typeof navigator !== "undefined" && navigator.onLine === false)) {
+            return "Sem conexão com a internet. Verifique e tente de novo.";
+        }
+        if (codigo === "tempo-esgotado") {
+            return "Não foi possível confirmar o salvamento. Recarregue a página para ver o que foi salvo.";
+        }
+        if (codigo === "permission-denied") return "Sem permissão para salvar. Entre na sua conta de novo.";
+        return "Não foi possível salvar. Tente de novo.";
     }
 
-    function salvarDespesas(lista) {
-        return salvarJSON(CHAVES.despesas, lista);
+    // Executa uma gravação na nuvem; avisa a pessoa e devolve true ou false.
+    // Offline não grava (o site exige internet), para nada ficar "na fila" escondido.
+    async function gravarNaNuvem(operacao) {
+        try {
+            if (typeof navigator !== "undefined" && navigator.onLine === false) throw { code: "sem-conexao" };
+            const nuvem = await obterNuvem();
+            await operacao(nuvem);
+            return true;
+        } catch (erro) {
+            console.warn("Falha ao gravar na nuvem.", erro);
+            mostrarToast(mensagemDeErroDeGravacao(erro), "erro");
+            return false;
+        }
+    }
+
+    // O que mudou entre a lista antiga e a nova (para gravar só a diferença)
+    function diferenca(antigos, novos) {
+        const porId = new Map(antigos.map(item => [item.id, JSON.stringify(item)]));
+        const idsNovos = new Set(novos.map(item => item.id));
+        return {
+            gravar: novos.filter(item => porId.get(item.id) !== JSON.stringify(item)),
+            apagar: antigos.filter(item => !idsNovos.has(item.id)).map(item => item.id)
+        };
+    }
+
+    async function carregarDadosDaNuvem() {
+        const nuvem = await obterNuvem();
+        const recebidos = await nuvem.carregarDados();
+
+        dados.renda = Number.isFinite(recebidos.renda) && recebidos.renda > 0 ? recebidos.renda : 0;
+        dados.foto = typeof recebidos.foto === "string" && REGEX_FOTO.test(recebidos.foto) ? recebidos.foto : "";
+        dados.despesas = (recebidos.despesas || []).map(normalizarDespesa).filter(Boolean);
+        dados.metas = (recebidos.metas || []).map(normalizarMeta).filter(Boolean);
+    }
+
+    // Carrega uma única vez por página (todos os chamadores esperam a mesma promessa)
+    function garantirDados() {
+        if (!promessaDados) {
+            promessaDados = carregarDadosDaNuvem().catch(erro => {
+                promessaDados = null;
+                throw erro;
+            });
+        }
+        return promessaDados;
+    }
+
+    function lerDespesas() {
+        return dados.despesas.map(item => ({ ...item }));
+    }
+
+    async function salvarDespesas(lista) {
+        const novas = lista.map(normalizarDespesa).filter(Boolean);
+        const { gravar, apagar } = diferenca(dados.despesas, novas);
+        if (gravar.length === 0 && apagar.length === 0) return true;
+
+        const gravou = await gravarNaNuvem(nuvem => nuvem.gravarDespesas(gravar, apagar));
+        if (gravou) dados.despesas = novas;
+        return gravou;
     }
 
     function normalizarMeta(item) {
@@ -312,35 +352,47 @@
     }
 
     function lerMetas() {
-        const brutas = lerJSON(CHAVES.metas, []);
-        const lista = [];
-        let alterou = false;
-
-        brutas.forEach(bruta => {
-            const meta = normalizarMeta(bruta);
-            if (!meta) {
-                alterou = true;
-                return;
-            }
-            if (bruta.id !== meta.id) alterou = true;
-            lista.push(meta);
-        });
-
-        if (alterou) salvarJSON(CHAVES.metas, lista);
-        return lista;
+        return dados.metas.map(item => ({ ...item }));
     }
 
-    function salvarMetas(lista) {
-        return salvarJSON(CHAVES.metas, lista);
+    async function salvarMetas(lista) {
+        const novas = lista.map(normalizarMeta).filter(Boolean);
+        const { gravar, apagar } = diferenca(dados.metas, novas);
+        if (gravar.length === 0 && apagar.length === 0) return true;
+
+        const gravou = await gravarNaNuvem(nuvem => nuvem.gravarMetas(gravar, apagar));
+        if (gravou) dados.metas = novas;
+        return gravou;
     }
 
     function lerRenda() {
-        const renda = parseFloat(lerTexto(CHAVES.renda, "0"));
-        return Number.isFinite(renda) && renda > 0 ? renda : 0;
+        return dados.renda;
     }
 
-    function salvarRenda(valor) {
-        return salvarTexto(CHAVES.renda, String(valor));
+    async function salvarRenda(valor) {
+        const gravou = await gravarNaNuvem(nuvem => nuvem.salvarRenda(valor));
+        if (gravou) dados.renda = valor;
+        return gravou;
+    }
+
+    function fotoAtual() {
+        return dados.foto;
+    }
+
+    async function salvarFoto(foto) {
+        const gravou = await gravarNaNuvem(nuvem => nuvem.salvarFoto(foto));
+        if (gravou) dados.foto = foto;
+        return gravou;
+    }
+
+    async function apagarDadosFinanceiros() {
+        const gravou = await gravarNaNuvem(nuvem => nuvem.apagarDadosFinanceiros());
+        if (gravou) {
+            dados.renda = 0;
+            dados.despesas = [];
+            dados.metas = [];
+        }
+        return gravou;
     }
 
     // ==========================================
@@ -348,6 +400,7 @@
     // ==========================================
     const protegida = document.body.dataset.protegida === "true";
     const TEMPO_LIMITE_SESSAO_MS = 12000;
+    const TEMPO_LIMITE_DADOS_MS = 15000;
     let ativo = true;
 
     // Navegação em uma função própria (facilita testar e manter)
@@ -379,10 +432,55 @@
             : new Promise(resolver => esperandoSessao.push(resolver));
     }
 
+    function comLimiteDeTempo(promessa, milissegundos) {
+        return Promise.race([
+            promessa,
+            new Promise((_, rejeitar) => setTimeout(() => rejeitar({ code: "tempo-esgotado" }), milissegundos))
+        ]);
+    }
+
+    function mostrarErroConexao(
+        titulo = "Sem conexão com o serviço",
+        texto = "Não foi possível verificar o seu login. Confira a internet e tente de novo."
+    ) {
+        document.documentElement.classList.remove("aguardando-sessao");
+        if (document.querySelector(".erro-conexao")) return;
+
+        const botao = criarElemento("button", { classe: "btn", texto: "Tentar de novo", attrs: { type: "button" } });
+        botao.addEventListener("click", () => window.location.reload());
+
+        document.body.append(criarElemento("div", { classe: "erro-conexao", attrs: { role: "alert" } }, [
+            criarElemento("h1", { texto: titulo }),
+            criarElemento("p", { texto }),
+            botao
+        ]));
+    }
+
+    // Só mostra a página depois que os dados da pessoa chegaram do banco
+    function liberarPaginaQuandoPronta() {
+        comLimiteDeTempo(garantirDados(), TEMPO_LIMITE_DADOS_MS)
+            .then(() => document.documentElement.classList.remove("aguardando-sessao"))
+            .catch(() => mostrarErroConexao(
+                "Não foi possível carregar seus dados",
+                "Confira a internet e tente de novo."
+            ));
+    }
+
     // Chamada pelo nuvem.js sempre que o estado de login muda.
     // usuario = { uid, nome, email } ou null
     function sessaoResolvida(usuario) {
+        const uidAnterior = usuarioDaNuvem ? usuarioDaNuvem.uid : null;
         usuarioDaNuvem = usuario || null;
+        const uidNovo = usuarioDaNuvem ? usuarioDaNuvem.uid : null;
+
+        // Outra pessoa (ou saída): descarta os dados que estavam na memória
+        if (uidAnterior !== uidNovo) {
+            promessaDados = null;
+            dados.renda = 0;
+            dados.foto = "";
+            dados.despesas = [];
+            dados.metas = [];
+        }
 
         if (usuarioDaNuvem) salvarTexto(CHAVES.sessao, usuarioDaNuvem.nome);
         else remover(CHAVES.sessao);
@@ -392,25 +490,13 @@
         if (protegida && !usuarioDaNuvem) {
             ativo = false;                       // a página continua escondida
             window.CC.irPara(PAGINA_LOGIN);
-        } else {
-            document.documentElement.classList.remove("aguardando-sessao");
-            if (document.readyState !== "loading") aplicarNome();
+        } else if (protegida) {
+            liberarPaginaQuandoPronta();
         }
 
+        if (usuarioDaNuvem && document.readyState !== "loading") aplicarNome();
+
         esperandoSessao.splice(0).forEach(resolver => resolver(usuarioDaNuvem));
-    }
-
-    function mostrarErroConexao() {
-        document.documentElement.classList.remove("aguardando-sessao");
-
-        const botao = criarElemento("button", { classe: "btn", texto: "Tentar de novo", attrs: { type: "button" } });
-        botao.addEventListener("click", () => window.location.reload());
-
-        document.body.append(criarElemento("div", { classe: "erro-conexao", attrs: { role: "alert" } }, [
-            criarElemento("h1", { texto: "Sem conexão com o serviço" }),
-            criarElemento("p", { texto: "Não foi possível verificar o seu login. Confira a internet e tente de novo." }),
-            botao
-        ]));
     }
 
     // Páginas protegidas ficam escondidas até o Firebase confirmar o login
@@ -422,7 +508,7 @@
     }
 
     // Executa a função quando o DOM estiver pronto e, nas páginas protegidas,
-    // só depois que o login for confirmado.
+    // só depois que o login for confirmado e os dados carregados.
     function aoCarregar(funcao) {
         if (!ativo) return;
 
@@ -432,7 +518,7 @@
                 return;
             }
             aguardarSessao().then(usuario => {
-                if (usuario) funcao();
+                if (usuario) garantirDados().then(funcao, () => {});
             });
         };
 
@@ -484,7 +570,7 @@
     // 8. FOTO E NOME DO USUÁRIO NA INTERFACE
     // ==========================================
     // Atualiza todos os elementos [data-avatar] com a foto (ou o ícone padrão)
-    function aplicarFoto(foto = lerTexto(CHAVES.foto)) {
+    function aplicarFoto(foto = dados.foto) {
         const valida = Boolean(foto) && REGEX_FOTO.test(foto);
 
         document.querySelectorAll("[data-avatar]").forEach(alvo => {
@@ -647,7 +733,6 @@
         aguardarSessao,
         sessaoResolvida,
         usuarioNuvem: () => usuarioDaNuvem || null,
-        limparDadosUsuario,
         mostrarToast,
         aplicarFoto,
         aplicarNome,
@@ -663,6 +748,9 @@
         lerMetas,
         salvarMetas,
         lerRenda,
-        salvarRenda
+        salvarRenda,
+        fotoAtual,
+        salvarFoto,
+        apagarDadosFinanceiros
     };
 })();

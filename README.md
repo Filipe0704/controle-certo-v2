@@ -10,7 +10,6 @@ Sistema web de **controle financeiro pessoal**, desenvolvido como projeto acadê
 - **Painel:** renda mensal, despesas por categoria, filtro por mês, saldo e gráfico.
 - **Metas:** objetivos com barra de progresso e depósitos.
 - **Relatórios:** gastos por categoria e comparação com a regra **50/30/20**.
-- **Galeria:** 12 ilustrações com filtro por categoria e visualização ampliada, navegável pelo teclado.
 - **Sobre:** informações do projeto, formulário de contato e edição de conta (nome e foto).
 
 ## Tecnologias
@@ -25,10 +24,9 @@ HTML5 semântico · CSS3 (variáveis, grid, flexbox, media queries) · JavaScrip
 | `index.html` | Painel |
 | `metas.html` | Minhas metas |
 | `relatorios.html` | Relatórios e regra 50/30/20 |
-| `galeria.html` | Galeria de imagens |
 | `sobre.html` | Sobre, contato e conta |
 
-Código: `cc.css` (estilos), `cc.js` (código comum) e um script por página (`login.js`, `painel.js`, `metas.js`, `relatorios.js`, `galeria.js`, `sobre.js`). Logotipo: `assets/logo.png`.
+Código: `cc.css` (estilos), `cc.js` (código comum) e um script por página (`login.js`, `painel.js`, `metas.js`, `relatorios.js`, `sobre.js`). Logotipo: `assets/logo.png`.
 
 ## Como executar
 
@@ -40,9 +38,7 @@ Código: `cc.css` (estilos), `cc.js` (código comum) e um script por página (`l
 
 ## Observações
 
-- Projeto 100% front-end: os dados ficam no `localStorage` do navegador de quem usa, sem servidor ou banco de dados.
-- Existe uma conta por navegador.
-- O formulário de contato é uma demonstração (a mensagem fica salva só no navegador).
+- Login pelo Firebase Authentication e dados no Firestore, com regras de segurança por usuário (`firestore.rules`).
 
 ## Equipe
 
