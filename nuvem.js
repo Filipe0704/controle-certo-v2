@@ -22,7 +22,13 @@ import {
     getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, addDoc, writeBatch,
     query, orderBy, limit, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
-import { firebaseConfig, ADMIN_UID } from "./firebase-config.js";
+import * as configuracao from "./firebase-config.js";
+
+const { firebaseConfig } = configuracao;
+
+// ADMIN_UID é opcional: se o firebase-config.js estiver desatualizado (ou em cache),
+// o site continua funcionando normalmente e só o atalho de administrador fica desligado.
+const ADMIN_UID = typeof configuracao.ADMIN_UID === "string" ? configuracao.ADMIN_UID : "";
 
 const LIMITE_NOME = 40;
 

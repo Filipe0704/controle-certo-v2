@@ -14,8 +14,10 @@ import { getAuth, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, getDocs, setDoc, deleteDoc, collection, addDoc, query, limit, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
-import { firebaseConfig, ADMIN_UID } from "./firebase-config.js";
+import * as configuracao from "./firebase-config.js";
 
+const { firebaseConfig } = configuracao;
+const ADMIN_UID = typeof configuracao.ADMIN_UID === "string" ? configuracao.ADMIN_UID : "";
 const TEMPO_LIMITE_MS = 12000;
 const lista = document.getElementById("resultados");
 const resumo = document.getElementById("resumo");

@@ -441,7 +441,7 @@
 
     function mostrarErroConexao(
         titulo = "Sem conexão com o serviço",
-        texto = "Não foi possível verificar o seu login. Confira a internet e tente de novo."
+        texto = "Não foi possível verificar o seu login. Confira a internet e tente de novo. Se você acabou de atualizar o site, recarregue a página com Ctrl + F5."
     ) {
         document.documentElement.classList.remove("aguardando-sessao");
         if (document.querySelector(".erro-conexao")) return;
