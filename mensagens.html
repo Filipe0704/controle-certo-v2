@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#0F172A">
+    <title>Mensagens recebidas - Controle Certo</title>
+    <link rel="icon" href="assets/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="cc.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body data-pagina="mensagens" data-protegida="true">
+
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    
+        <!-- ========== CABEÇALHO E MENU (igual em todas as páginas) ========== -->
+        <header class="cabecalho">
+            <div class="cabecalho__interno">
+                <a class="marca" href="index.html" aria-label="Controle Certo - ir para o painel">
+                    <!-- LOGOTIPO: a imagem do logotipo fica em assets/logo.png (512x512) -->
+                    <span class="marca__logo">
+                        <img class="marca__img" src="assets/logo.png" alt="" width="44" height="44">
+                        <i class="fa-solid fa-wallet marca__icone" aria-hidden="true"></i>
+                    </span>
+                    <span class="marca__nome">Controle Certo</span>
+                </a>
+    
+                <button type="button" class="menu-btn" id="menu-btn"
+                        aria-expanded="false" aria-controls="menu-principal" aria-label="Abrir menu">
+                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
+                </button>
+    
+                <nav id="menu-principal" class="menu" aria-label="Navegação principal">
+                    <div class="menu__topo">
+                        <span>Menu</span>
+                        <button type="button" class="menu-btn" id="menu-fechar" aria-label="Fechar menu">
+                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                        </button>
+                    </div>
+    
+                    <ul class="menu__lista">
+                        <li><a class="menu__link" href="index.html"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Painel</a></li>
+                        <li><a class="menu__link" href="metas.html"><i class="fa-solid fa-bullseye" aria-hidden="true"></i> Metas</a></li>
+                        <li><a class="menu__link" href="relatorios.html"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Relatórios</a></li>
+                        <li><a class="menu__link" href="sobre.html"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Sobre</a></li>
+                    </ul>
+    
+                    <div class="menu__usuario">
+                        <a class="menu__perfil" href="conta.html" aria-label="Minha conta">
+                            <span class="avatar" data-avatar><i class="fa-solid fa-user" aria-hidden="true"></i></span>
+                            <span class="menu__nome" data-nome-usuario>Visitante</span>
+                        </a>
+                        <button type="button" class="btn btn--secundario btn--pequeno" data-acao="sair">
+                            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Sair
+                        </button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+        <div class="overlay" id="overlay"></div>
+
+    <main id="conteudo">
+
+        <div class="pagina-titulo">
+            <p class="eyebrow">Administração</p>
+            <h1>Mensagens recebidas</h1>
+            <p>Leia, responda e organize as mensagens enviadas pelo &ldquo;Fale com a gente&rdquo;.</p>
+        </div>
+
+        <section aria-labelledby="titulo-lista">
+            <div class="linha">
+                <h2 id="titulo-lista">Caixa de entrada</h2>
+                <div class="form-linha">
+                    <div class="campo campo--filtro">
+                        <label for="filtro-status">Mostrar</label>
+                        <select id="filtro-status">
+                            <option value="todas">Todas</option>
+                            <option value="nao-lidas">Não lidas</option>
+                        </select>
+                    </div>
+                    <div class="campo campo--filtro">
+                        <label for="filtro-assunto">Assunto</label>
+                        <select id="filtro-assunto">
+                            <option value="todos">Todos</option>
+                            <option value="duvida">Dúvida</option>
+                            <option value="sugestao">Sugestão</option>
+                            <option value="problema">Problema</option>
+                            <option value="elogio">Elogio</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <p class="texto-suave" id="resumo-mensagens" aria-live="polite"></p>
+            <div class="alerta alerta--info" id="estado-carregando">Carregando mensagens...</div>
+            <div class="alerta alerta--erro" id="estado-erro" role="alert" hidden>
+                Não foi possível carregar as mensagens. Verifique a internet e
+                <button type="button" class="link-botao" id="tentar-de-novo">tente de novo</button>.
+            </div>
+            <div id="lista-mensagens" class="lista-mensagens"></div>
+            <p class="vazio" id="vazio-mensagens" hidden>Nenhuma mensagem para mostrar.</p>
+        </section>
+
+        <section aria-labelledby="titulo-restrito" id="estado-restrito" hidden>
+            <h2 id="titulo-restrito">Acesso restrito</h2>
+            <p>Esta página é só para quem administra o site. Se é você, libere o acesso assim:</p>
+            <ol class="lista-simples">
+                <li>Copie o seu código de usuário abaixo.</li>
+                <li>Cole-o no arquivo <code>firestore.rules</code> (na função <code>administrador</code>) e em <code>firebase-config.js</code> (<code>ADMIN_UID</code>).</li>
+                <li>Publique as regras no Firebase e envie o arquivo <code>firebase-config.js</code> para o GitHub.</li>
+            </ol>
+            <p class="texto-suave">Seu código de usuário:</p>
+            <p><code class="codigo" id="meu-uid"></code></p>
+        </section>
+
+    </main>
+
+    <footer class="rodape">
+            <div class="rodape__interno">
+                <div class="rodape__marca">
+                    <strong>Controle Certo</strong>
+                    <p>Organize suas finanças com clareza: despesas, metas e relatórios em um só lugar.</p>
+                </div>
+                <nav class="rodape__links" aria-label="Rodapé">
+                    <a href="index.html">Painel</a>
+                    <a href="metas.html">Metas</a>
+                    <a href="relatorios.html">Relatórios</a>
+                    <a href="sobre.html">Sobre</a>
+                    <a href="sobre.html#contato">Fale com a gente</a>
+                </nav>
+            </div>
+            <p class="rodape__copy">&copy; <span data-ano></span> Controle Certo. Seus dados ficam na sua conta e só você tem acesso a eles.</p>
+        </footer>
+
+    <script src="cc.js"></script>
+    <script type="module" src="nuvem.js"></script>
+    <script src="mensagens.js"></script>
+</body>
+</html>

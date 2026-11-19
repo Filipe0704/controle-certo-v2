@@ -12,6 +12,12 @@
 
 export const VERSAO_SDK = "13.3.0";
 
+// Código (UID) da conta de quem administra o site e lê as mensagens de contato.
+// Onde achar: Firebase > Authentication > Usuários > coluna "UID do usuário".
+// Este valor só controla o que aparece na tela. Quem realmente protege as
+// mensagens são as REGRAS do Firestore (firestore.rules): coloque o MESMO UID lá.
+export const ADMIN_UID = "COLE-AQUI-O-SEU-UID";
+
 export const firebaseConfig = {
     apiKey: "AIzaSyBM9NyVEnFh_0oIqFMe0bAEh7iBWAs4_Xo",
     authDomain: "controle-certo-ea53c.firebaseapp.com",

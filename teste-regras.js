@@ -12,9 +12,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 import { getAuth, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, addDoc, serverTimestamp }
+import { getFirestore, doc, getDoc, getDocs, setDoc, deleteDoc, collection, addDoc, query, limit, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js";
+import { firebaseConfig, ADMIN_UID } from "./firebase-config.js";
 
 const TEMPO_LIMITE_MS = 12000;
 const lista = document.getElementById("resultados");
@@ -138,7 +138,14 @@ async function executar(usuario) {
         assunto: "duvida", mensagem: "[TESTE] Verificação das regras de segurança.",
         criadoEm: serverTimestamp()
     }));
-    await recusado("Ler as mensagens de contato pelo site", () => getDoc(doc(banco, "mensagens", "qualquer")));
+    const souAdministrador = ADMIN_UID !== "" && usuario.uid === ADMIN_UID;
+    if (souAdministrador) {
+        await permitido("Ler as mensagens de contato (você é o administrador)",
+            () => getDocs(query(collection(banco, "mensagens"), limit(1))));
+    } else {
+        await recusado("Ler as mensagens de contato (quem não é administrador)",
+            () => getDocs(query(collection(banco, "mensagens"), limit(1))));
+    }
 
     // ---- Limpeza dos dados de teste (ignora erros) ----
     await Promise.allSettled([deleteDoc(despesa), deleteDoc(meta)]);

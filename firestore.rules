@@ -6,8 +6,8 @@ rules_version = '2';
 // Princípios:
 //  1) Cada pessoa lê e altera SOMENTE o que está sob o seu próprio uid.
 //  2) Só são aceitos os campos esperados, com tipo e tamanho válidos.
-//  3) Mensagens de contato: qualquer pessoa logada pode ENVIAR,
-//     mas ninguém lê pelo site (você lê no console do Firebase).
+//  3) Mensagens de contato: qualquer pessoa logada pode ENVIAR;
+//     só o administrador (UID abaixo) lê, marca como lida e apaga.
 //  4) Tudo o que não está descrito aqui fica BLOQUEADO.
 // =========================================================
 service cloud.firestore {
@@ -20,6 +20,11 @@ service cloud.firestore {
 
     function dono(uid) {
       return logado() && request.auth.uid == uid;
+    }
+
+    // UID de quem administra o site (o mesmo de firebase-config.js)
+    function administrador() {
+      return logado() && request.auth.uid == 'COLE-AQUI-O-SEU-UID';
     }
 
     function numeroEntre(v, minimo, maximo) {
@@ -90,10 +95,15 @@ service cloud.firestore {
       }
     }
 
-    // ---------- contato (só envio) ----------
+    // ---------- contato ----------
+    // Qualquer pessoa logada ENVIA. Só o administrador lê, marca como lida e apaga.
     match /mensagens/{mensagemId} {
       allow create: if logado() && mensagemValida(request.resource.data);
-      allow read, update, delete: if false;
+      allow read: if administrador();
+      allow update: if administrador()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lida'])
+        && request.resource.data.lida is bool;
+      allow delete: if administrador();
     }
   }
 }

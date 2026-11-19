@@ -7,6 +7,9 @@
     <meta name="theme-color" content="#0F172A">
     <title>Relatórios - Controle Certo</title>
     <link rel="icon" href="assets/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="cc.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -47,8 +50,10 @@
                     </ul>
     
                     <div class="menu__usuario">
-                        <span class="avatar" data-avatar><i class="fa-solid fa-user" aria-hidden="true"></i></span>
-                        <span class="menu__nome" data-nome-usuario>Visitante</span>
+                        <a class="menu__perfil" href="conta.html" aria-label="Minha conta">
+                            <span class="avatar" data-avatar><i class="fa-solid fa-user" aria-hidden="true"></i></span>
+                            <span class="menu__nome" data-nome-usuario>Visitante</span>
+                        </a>
                         <button type="button" class="btn btn--secundario btn--pequeno" data-acao="sair">
                             <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Sair
                         </button>
@@ -62,6 +67,7 @@
     <main id="conteudo">
 
         <div class="pagina-titulo">
+            <p class="eyebrow">Análise dos gastos</p>
             <h1>Relatórios e dicas</h1>
             <p>Descubra para onde vai o seu dinheiro e compare seus gastos com a regra financeira 50/30/20.</p>
         </div>
@@ -162,7 +168,20 @@
     </main>
 
     <footer class="rodape">
-        <p>&copy; <span data-ano></span> Controle Certo &middot; Projeto acadêmico de gestão financeira</p>
+        <div class="rodape__interno">
+            <div class="rodape__marca">
+                <strong>Controle Certo</strong>
+                <p>Organize suas finanças com clareza: despesas, metas e relatórios em um só lugar.</p>
+            </div>
+            <nav class="rodape__links" aria-label="Rodapé">
+                <a href="index.html">Painel</a>
+                <a href="metas.html">Metas</a>
+                <a href="relatorios.html">Relatórios</a>
+                <a href="sobre.html">Sobre</a>
+                <a href="sobre.html#contato">Fale com a gente</a>
+            </nav>
+        </div>
+        <p class="rodape__copy">&copy; <span data-ano></span> Controle Certo. Seus dados ficam na sua conta e só você tem acesso a eles.</p>
     </footer>
 
     <script src="cc.js"></script>

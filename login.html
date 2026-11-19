@@ -7,6 +7,9 @@
     <meta name="theme-color" content="#0F172A">
     <title>Entrar - Controle Certo</title>
     <link rel="icon" href="assets/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="cc.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -14,18 +17,32 @@
 
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
+    <div class="auth-layout">
+
+        <aside class="auth-apresentacao" aria-labelledby="apresentacao-titulo">
+            <div class="marca">
+                <span class="marca__logo">
+                    <img class="marca__img" src="assets/logo.png" alt="Logotipo do Controle Certo" width="58" height="58">
+                    <i class="fa-solid fa-wallet marca__icone" aria-hidden="true"></i>
+                </span>
+                <span class="marca__nome">Controle Certo</span>
+            </div>
+
+            <h1 id="apresentacao-titulo">Saiba para onde vai o <span class="destaque-texto">seu dinheiro</span>.</h1>
+            <p>O Controle Certo organiza suas despesas, acompanha suas metas e mostra se os seus gastos estão equilibrados. É gratuito e funciona no celular e no computador.</p>
+
+            <ul class="auth-beneficios">
+                <li><span class="icone-chip" aria-hidden="true"><i class="fa-solid fa-receipt"></i></span> Registre despesas em segundos e veja o saldo do mês</li>
+                <li><span class="icone-chip icone-chip--ciano" aria-hidden="true"><i class="fa-solid fa-bullseye"></i></span> Crie metas e acompanhe cada passo até alcançá-las</li>
+                <li><span class="icone-chip icone-chip--indigo" aria-hidden="true"><i class="fa-solid fa-chart-pie"></i></span> Compare seus gastos com a regra 50/30/20</li>
+            </ul>
+        </aside>
+
     <main id="conteudo" class="auth-caixa">
 
         <header class="auth-cabecalho">
-            <div class="marca">
-                <!-- LOGOTIPO: a imagem do logotipo fica em assets/logo.png (512x512) -->
-                <span class="marca__logo">
-                    <img class="marca__img" src="assets/logo.png" alt="Logotipo do Controle Certo" width="72" height="72">
-                    <i class="fa-solid fa-wallet marca__icone" aria-hidden="true"></i>
-                </span>
-                <h1 class="marca__nome">Controle Certo</h1>
-            </div>
-            <p>Gestão financeira inteligente</p>
+            <h2>Acesse sua conta</h2>
+            <p>Entre ou crie uma conta gratuita em menos de um minuto.</p>
         </header>
 
         <div class="abas" role="tablist" aria-label="Acesso à conta">
@@ -136,7 +153,11 @@
             <button type="button" class="link-botao" id="voltar-entrar">Voltar para entrar</button>
         </form>
 
+        <p class="campo__ajuda auth-nota">Seus dados ficam na sua conta e só você tem acesso a eles.</p>
+
     </main>
+
+    </div>
 
     <script src="cc.js"></script>
     <script type="module" src="nuvem.js"></script>

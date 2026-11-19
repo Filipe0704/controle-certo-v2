@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Conheça o projeto Controle Certo, fale com a equipe e edite os dados da sua conta.">
+    <meta name="description" content="Conheça o Controle Certo: organize despesas, acompanhe metas e equilibre seus gastos com a regra 50/30/20.">
     <meta name="theme-color" content="#0F172A">
     <title>Sobre - Controle Certo</title>
     <link rel="icon" href="assets/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="cc.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -47,8 +50,10 @@
                     </ul>
     
                     <div class="menu__usuario">
-                        <span class="avatar" data-avatar><i class="fa-solid fa-user" aria-hidden="true"></i></span>
-                        <span class="menu__nome" data-nome-usuario>Visitante</span>
+                        <a class="menu__perfil" href="conta.html" aria-label="Minha conta">
+                            <span class="avatar" data-avatar><i class="fa-solid fa-user" aria-hidden="true"></i></span>
+                            <span class="menu__nome" data-nome-usuario>Visitante</span>
+                        </a>
                         <button type="button" class="btn btn--secundario btn--pequeno" data-acao="sair">
                             <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Sair
                         </button>
@@ -58,153 +63,222 @@
         </header>
         <div class="overlay" id="overlay"></div>
 
-    <!-- ========== CONTEÚDO ========== -->
     <main id="conteudo">
 
-        <div class="pagina-titulo">
-            <h1>Sobre o projeto</h1>
-            <p>Conheça o Controle Certo, entre em contato e mantenha os dados da sua conta em dia.</p>
+        <section class="hero secao-aberta" aria-labelledby="titulo-hero">
+            <span class="selo"><i class="fa-solid fa-heart" aria-hidden="true"></i> Gratuito e simples de usar</span>
+            <h1 id="titulo-hero">Seu dinheiro, <span class="destaque-texto">sob controle</span>.</h1>
+            <p class="hero__texto">O Controle Certo ajuda você a entender para onde o seu dinheiro vai, a guardar para o que importa e a manter os gastos em equilíbrio. Sem planilhas complicadas: você registra, o site organiza.</p>
+            <div class="hero__acoes">
+                <a class="btn" href="index.html"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Ir para o painel</a>
+                <a class="btn btn--secundario" href="#contato"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Fale com a gente</a>
+            </div>
+        </section>
+
+        <div class="secao-titulo">
+            <p class="eyebrow">Para que serve</p>
+            <h2>Tudo para organizar a sua vida financeira</h2>
+            <p>Em poucos minutos por semana, você passa a enxergar seus gastos com clareza e a tomar decisões melhores.</p>
+        </div>
+        <div class="grade-cartoes">
+            <article class="card">
+                <span class="icone-chip " aria-hidden="true"><i class="fa-solid fa-receipt"></i></span>
+                <h3>Saiba para onde vai o dinheiro</h3>
+                <p>Registre cada despesa com categoria e veja, mês a mês, quanto você gastou e quanto sobrou da sua renda.</p>
+            </article>
+            <article class="card">
+                <span class="icone-chip icone-chip--ciano" aria-hidden="true"><i class="fa-solid fa-bullseye"></i></span>
+                <h3>Alcance seus objetivos</h3>
+                <p>Crie metas, como uma viagem ou uma reserva de emergência, e acompanhe o progresso com uma barra clara.</p>
+            </article>
+            <article class="card">
+                <span class="icone-chip icone-chip--indigo" aria-hidden="true"><i class="fa-solid fa-scale-balanced"></i></span>
+                <h3>Equilibre seus gastos</h3>
+                <p>Compare o que você gasta com a regra 50/30/20 e descubra onde vale a pena ajustar.</p>
+            </article>
+            <article class="card">
+                <span class="icone-chip icone-chip--quente" aria-hidden="true"><i class="fa-solid fa-cloud"></i></span>
+                <h3>Seus dados em qualquer lugar</h3>
+                <p>Sua conta guarda tudo com segurança, e você acessa do celular ou do computador.</p>
+            </article>
         </div>
 
-        <section aria-labelledby="titulo-sobre">
-            <div class="sobre-hero">
-                <div>
-                    <h2 id="titulo-sobre">O que é o Controle Certo?</h2>
-                    <p>O Controle Certo é um sistema de gestão financeira pessoal criado para ajudar você a entender para onde vai o seu dinheiro e a alcançar seus objetivos, sem planilhas complicadas.</p>
-                    <p>Você registra suas despesas por categoria, acompanha o saldo do mês, cria metas e compara os seus gastos com a regra 50/30/20: metade da renda para necessidades, 30% para desejos e 20% para poupança.</p>
-                    <p>Trata-se de um projeto acadêmico da Avaliação A2, desenvolvido com HTML5, CSS3 e JavaScript puro, com o gráfico feito em Chart.js e os ícones da Font Awesome. Os seus dados ficam salvos com segurança na sua conta, e só você os acessa.</p>
-                    <!-- Para identificar a equipe, acrescente aqui um parágrafo com os nomes, o curso e a disciplina. -->
-                </div>
-                <ul class="sobre-lista">
-                    <li>
-                        <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-                        <span><strong>Painel financeiro</strong><br><span class="texto-suave">Renda, despesas por categoria, saldo e gráfico.</span></span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-bullseye" aria-hidden="true"></i>
-                        <span><strong>Metas</strong><br><span class="texto-suave">Objetivos com barra de progresso e depósitos.</span></span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
-                        <span><strong>Relatórios e regra 50/30/20</strong><br><span class="texto-suave">Compare seus gastos com os limites ideais.</span></span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-cloud" aria-hidden="true"></i>
-                        <span><strong>Dados na nuvem</strong><br><span class="texto-suave">Suas informações ficam salvas na sua conta e acompanham você em qualquer aparelho.</span></span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                        <span><strong>Login seguro</strong><br><span class="texto-suave">O login é feito pelo Firebase, que protege as senhas. Cada pessoa vê só os próprios dados.</span></span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-mobile-screen" aria-hidden="true"></i>
-                        <span><strong>Responsivo e acessível</strong><br><span class="texto-suave">Funciona no celular e no computador, com navegação por teclado.</span></span>
-                    </li>
+        <div class="secao-titulo">
+            <p class="eyebrow">Como funciona</p>
+            <h2>Três passos para começar</h2>
+        </div>
+        <ol class="passos">
+            <li><h3>Informe sua renda</h3><p>Diga quanto você recebe por mês. Ela é a base para calcular o seu saldo e os limites ideais.</p></li>
+            <li><h3>Registre suas despesas</h3><p>Lance cada gasto com data, valor e categoria. Leva poucos segundos.</p></li>
+            <li><h3>Acompanhe e ajuste</h3><p>Veja o saldo, o gráfico por categoria e os relatórios, e corrija o rumo quando precisar.</p></li>
+        </ol>
+
+        <div class="secao-titulo">
+            <p class="eyebrow">Regra 50/30/20</p>
+            <h2>Um jeito simples de dividir a renda</h2>
+            <p>É uma referência muito usada em educação financeira. O site compara os seus gastos com ela e mostra onde você está.</p>
+        </div>
+        <div class="grade-cartoes">
+            <article class="card">
+                <span class="icone-chip " aria-hidden="true"><i class="fa-solid fa-house"></i></span>
+                <h3>50% para necessidades</h3>
+                <p>Moradia, alimentação, transporte, saúde e educação: o que você precisa para viver.</p>
+            </article>
+            <article class="card">
+                <span class="icone-chip icone-chip--ciano" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span>
+                <h3>30% para desejos</h3>
+                <p>Lazer, compras e outros gastos que melhoram o dia a dia, mas não são essenciais.</p>
+            </article>
+            <article class="card">
+                <span class="icone-chip icone-chip--indigo" aria-hidden="true"><i class="fa-solid fa-piggy-bank"></i></span>
+                <h3>20% para poupança</h3>
+                <p>Dinheiro guardado para os seus objetivos, acompanhado na página de metas.</p>
+            </article>
+        </div>
+
+        <div class="secao-titulo">
+            <p class="eyebrow">Privacidade</p>
+            <h2>Seus dados são seus</h2>
+            <p>Guardamos o mínimo necessário para o site funcionar e deixamos você no controle.</p>
+        </div>
+        <div class="grade-cartoes">
+            <article class="card">
+                <span class="icone-chip" aria-hidden="true"><i class="fa-solid fa-database"></i></span>
+                <h3>O que guardamos</h3>
+                <ul class="lista-simples">
+                    <li>Seu nome e e-mail de login</li>
+                    <li>Renda, despesas e metas que você cadastra</li>
+                    <li>Sua foto, se você escolher uma</li>
+                    <li>Mensagens enviadas em &ldquo;Fale com a gente&rdquo;</li>
                 </ul>
-            </div>
-        </section>
+            </article>
+            <article class="card">
+                <span class="icone-chip icone-chip--ciano" aria-hidden="true"><i class="fa-solid fa-user-lock"></i></span>
+                <h3>Quem vê seus dados</h3>
+                <p>Só você. Cada conta acessa apenas os próprios dados, e o login é protegido pelo Firebase, serviço do Google. Não vendemos nem compartilhamos suas informações.</p>
+            </article>
+            <article class="card">
+                <span class="icone-chip icone-chip--quente" aria-hidden="true"><i class="fa-solid fa-trash-can"></i></span>
+                <h3>Você no controle</h3>
+                <p>Você pode apagar a renda, as despesas e as metas, e trocar a foto e o nome a qualquer momento em <a href="conta.html">Minha conta</a>.</p>
+            </article>
+        </div>
 
-        <section aria-labelledby="titulo-contato">
+        <div class="secao-titulo">
+            <p class="eyebrow">Dúvidas frequentes</p>
+            <h2>Perguntas e respostas</h2>
+        </div>
+        <div class="faq">
+            <details>
+                <summary>O Controle Certo é gratuito?</summary>
+                <p>Sim. No momento você pode usar todas as funções sem pagar nada.</p>
+            </details>
+            <details>
+                <summary>Meus dados estão seguros?</summary>
+                <p>Cada pessoa só enxerga os próprios dados, e as senhas são protegidas pelo Firebase. Mesmo assim, use uma senha forte e não a repita em outros sites.</p>
+            </details>
+            <details>
+                <summary>Funciona no celular?</summary>
+                <p>Sim. O site se adapta a telas pequenas, e você acessa com a mesma conta no celular e no computador.</p>
+            </details>
+            <details>
+                <summary>Esqueci minha senha. E agora?</summary>
+                <p>Na tela de entrada, clique em &ldquo;Esqueci minha senha&rdquo;. Enviaremos um link para o seu e-mail para você criar uma nova senha. Se não chegar, confira a caixa de spam.</p>
+            </details>
+            <details>
+                <summary>A conta recorrente se repete sozinha?</summary>
+                <p>Ainda não. Hoje a marcação serve para identificar as contas fixas do mês, como aluguel e internet. O lançamento automático está nos planos.</p>
+            </details>
+            <details>
+                <summary>Como apago meus dados?</summary>
+                <p>Em <a href="conta.html">Minha conta</a>, use o botão para apagar renda, despesas e metas. Essa ação não pode ser desfeita.</p>
+            </details>
+        </div>
+
+        <div class="secao-titulo" id="contato">
+            <p class="eyebrow">Contato</p>
             <h2 id="titulo-contato">Fale com a gente</h2>
-            <div class="alerta alerta--info">
-                Sua mensagem é enviada com segurança para a equipe do projeto. Respondemos pelo e-mail informado.
-            </div>
-            <div class="alerta alerta--sucesso" id="msg-contato" role="alert" hidden></div>
-
-            <form id="form-contato" novalidate>
-                <div class="form-grade">
-                    <div class="campo">
-                        <label for="contato-nome">Nome</label>
-                        <input type="text" id="contato-nome" maxlength="40" autocomplete="name"
-                               required aria-describedby="contato-nome-erro">
-                        <p class="campo-erro" id="contato-nome-erro"></p>
-                    </div>
-                    <div class="campo">
-                        <label for="contato-email">E-mail</label>
-                        <input type="email" id="contato-email" maxlength="254" autocomplete="email"
-                               placeholder="nome@exemplo.com" required aria-describedby="contato-email-erro">
-                        <p class="campo-erro" id="contato-email-erro"></p>
-                    </div>
-                    <div class="campo">
-                        <label for="contato-assunto">Assunto</label>
-                        <select id="contato-assunto" required aria-describedby="contato-assunto-erro">
-                            <option value="">Selecione...</option>
-                            <option value="duvida">Dúvida</option>
-                            <option value="sugestao">Sugestão</option>
-                            <option value="problema">Problema</option>
-                            <option value="elogio">Elogio</option>
-                        </select>
-                        <p class="campo-erro" id="contato-assunto-erro"></p>
-                    </div>
+            <p>Tem uma dúvida, uma ideia ou encontrou um problema? Escreva e a mensagem chega até nós.</p>
+        </div>
+        <div class="contato-grade">
+            <div class="contato-lateral">
+                <div class="contato-item">
+                    <span class="icone-chip" aria-hidden="true"><i class="fa-solid fa-circle-question"></i></span>
+                    <div><h3>Dúvidas</h3><p>Não entendeu alguma função? Pergunte.</p></div>
                 </div>
-
-                <div class="campo">
-                    <label for="contato-mensagem">Mensagem</label>
-                    <textarea id="contato-mensagem" maxlength="500" required
-                              placeholder="Escreva sua mensagem (mínimo de 10 caracteres)"
-                              aria-describedby="contato-contador contato-mensagem-erro"></textarea>
-                    <p class="campo__ajuda" id="contato-contador">0/500 caracteres</p>
-                    <p class="campo-erro" id="contato-mensagem-erro"></p>
+                <div class="contato-item">
+                    <span class="icone-chip icone-chip--ciano" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></span>
+                    <div><h3>Sugestões</h3><p>Ideias para melhorar o site são muito bem-vindas.</p></div>
                 </div>
-
-                <div class="form-acoes">
-                    <span></span>
-                    <button type="submit" class="btn btn--mobile-bloco">
-                        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar mensagem
-                    </button>
+                <div class="contato-item">
+                    <span class="icone-chip icone-chip--quente" aria-hidden="true"><i class="fa-solid fa-bug"></i></span>
+                    <div><h3>Problemas</h3><p>Conte o que aconteceu e em qual página, para facilitar a correção.</p></div>
                 </div>
-            </form>
-        </section>
-
-        <section aria-labelledby="titulo-conta">
-            <h2 id="titulo-conta">Editar minha conta</h2>
-
-            <div class="perfil-editar">
-                <span class="avatar avatar--grande" data-avatar><i class="fa-solid fa-user" aria-hidden="true"></i></span>
-
-                <div class="linha">
-                    <input type="file" id="foto-input" class="input-arquivo"
-                           accept="image/jpeg,image/png,image/webp" aria-describedby="foto-ajuda foto-erro">
-                    <label class="btn btn--secundario" for="foto-input">
-                        <i class="fa-solid fa-camera" aria-hidden="true"></i> Escolher nova foto
-                    </label>
-                    <button type="button" class="btn btn--perigo" id="foto-remover">
-                        <i class="fa-solid fa-trash" aria-hidden="true"></i> Remover foto
-                    </button>
-                </div>
-                <p class="campo__ajuda" id="foto-ajuda">Use uma imagem JPG, PNG ou WebP com até 5 MB. Ela será recortada e reduzida automaticamente.</p>
-                <p class="campo-erro" id="foto-erro" role="alert"></p>
             </div>
 
-            <form id="form-conta" novalidate>
-                <div class="campo">
-                    <label for="editar-nome">Nome de exibição</label>
-                    <input type="text" id="editar-nome" maxlength="40" autocomplete="name"
-                           required aria-describedby="editar-nome-erro">
-                    <p class="campo-erro" id="editar-nome-erro"></p>
-                </div>
-                <div class="form-acoes">
-                    <span></span>
-                    <button type="submit" class="btn btn--mobile-bloco">
-                        <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Salvar alterações
-                    </button>
-                </div>
-            </form>
-        </section>
+            <section aria-labelledby="titulo-contato">
+                <div class="alerta alerta--sucesso" id="msg-contato" role="alert" hidden></div>
 
-        <section aria-labelledby="titulo-dados">
-            <h2 id="titulo-dados">Dados financeiros</h2>
-            <p class="texto-suave">Apague a renda, as despesas e as metas salvas na sua conta. Sua conta e sua foto continuam como estão. Essa ação não pode ser desfeita.</p>
-            <button type="button" class="btn btn--perigo" id="apagar-dados">
-                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Apagar meus dados financeiros
-            </button>
-        </section>
+                <form id="form-contato" novalidate>
+                    <div class="form-grade">
+                        <div class="campo">
+                            <label for="contato-nome">Nome</label>
+                            <input type="text" id="contato-nome" maxlength="40" autocomplete="name" required aria-describedby="contato-nome-erro">
+                            <p class="campo-erro" id="contato-nome-erro"></p>
+                        </div>
+                        <div class="campo">
+                            <label for="contato-email">E-mail</label>
+                            <input type="email" id="contato-email" maxlength="254" autocomplete="email" placeholder="nome@exemplo.com" required aria-describedby="contato-email-erro">
+                            <p class="campo-erro" id="contato-email-erro"></p>
+                        </div>
+                        <div class="campo">
+                            <label for="contato-assunto">Assunto</label>
+                            <select id="contato-assunto" required aria-describedby="contato-assunto-erro">
+                                <option value="">Selecione...</option>
+                                <option value="duvida">Dúvida</option>
+                                <option value="sugestao">Sugestão</option>
+                                <option value="problema">Problema</option>
+                                <option value="elogio">Elogio</option>
+                            </select>
+                            <p class="campo-erro" id="contato-assunto-erro"></p>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label for="contato-mensagem">Mensagem</label>
+                        <textarea id="contato-mensagem" maxlength="500" required placeholder="Escreva sua mensagem (mínimo de 10 caracteres)" aria-describedby="contato-contador contato-mensagem-erro"></textarea>
+                        <p class="campo__ajuda" id="contato-contador">0/500 caracteres</p>
+                        <p class="campo-erro" id="contato-mensagem-erro"></p>
+                    </div>
+
+                    <div class="form-acoes">
+                        <span></span>
+                        <button type="submit" class="btn btn--mobile-bloco">
+                            <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar mensagem
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
 
     </main>
 
     <footer class="rodape">
-        <p>&copy; <span data-ano></span> Controle Certo &middot; Projeto acadêmico de gestão financeira</p>
-    </footer>
+            <div class="rodape__interno">
+                <div class="rodape__marca">
+                    <strong>Controle Certo</strong>
+                    <p>Organize suas finanças com clareza: despesas, metas e relatórios em um só lugar.</p>
+                </div>
+                <nav class="rodape__links" aria-label="Rodapé">
+                    <a href="index.html">Painel</a>
+                    <a href="metas.html">Metas</a>
+                    <a href="relatorios.html">Relatórios</a>
+                    <a href="sobre.html">Sobre</a>
+                    <a href="sobre.html#contato">Fale com a gente</a>
+                </nav>
+            </div>
+            <p class="rodape__copy">&copy; <span data-ano></span> Controle Certo. Seus dados ficam na sua conta e só você tem acesso a eles.</p>
+        </footer>
 
     <script src="cc.js"></script>
     <script type="module" src="nuvem.js"></script>

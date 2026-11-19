@@ -19,9 +19,10 @@ import {
     signOut, sendPasswordResetEmail, updateProfile
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 import {
-    getFirestore, doc, getDoc, getDocs, setDoc, collection, addDoc, writeBatch, serverTimestamp
+    getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, addDoc, writeBatch,
+    query, orderBy, limit, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js";
+import { firebaseConfig, ADMIN_UID } from "./firebase-config.js";
 
 const LIMITE_NOME = 40;
 
@@ -217,6 +218,42 @@ async function enviarContato({ nome, email, assunto, mensagem }) {
 }
 
 // ==========================================
+// ADMINISTRAÇÃO: mensagens do "Fale com a gente"
+// O acesso é decidido pelas regras do banco (firestore.rules).
+// ehAdministrador() serve só para mostrar ou esconder botões.
+// ==========================================
+function ehAdministrador() {
+    return Boolean(auth.currentUser) && ADMIN_UID !== "" && auth.currentUser.uid === ADMIN_UID;
+}
+
+async function listarMensagens() {
+    const resultado = await comLimite(getDocs(
+        query(collection(banco, "mensagens"), orderBy("criadoEm", "desc"), limit(200))
+    ));
+
+    return resultado.docs.map(item => {
+        const d = item.data();
+        return {
+            id: item.id,
+            nome: String(d.nome || ""),
+            email: String(d.email || ""),
+            assunto: String(d.assunto || ""),
+            mensagem: String(d.mensagem || ""),
+            lida: d.lida === true,
+            criadoEm: d.criadoEm && typeof d.criadoEm.toMillis === "function" ? d.criadoEm.toMillis() : 0
+        };
+    });
+}
+
+async function marcarMensagemLida(id, lida) {
+    await comLimite(updateDoc(doc(banco, "mensagens", id), { lida: Boolean(lida) }));
+}
+
+async function excluirMensagem(id) {
+    await comLimite(deleteDoc(doc(banco, "mensagens", id)));
+}
+
+// ==========================================
 // INICIALIZAÇÃO: entrega a API e acompanha o login
 // ==========================================
 window.CC.registrarNuvem({
@@ -233,7 +270,11 @@ window.CC.registrarNuvem({
     gravarDespesas,
     gravarMetas,
     apagarDadosFinanceiros,
-    enviarContato
+    enviarContato,
+    ehAdministrador,
+    listarMensagens,
+    marcarMensagemLida,
+    excluirMensagem
 });
 
 onAuthStateChanged(auth, usuario => {

@@ -192,7 +192,7 @@
                 datasets: [{
                     data: totais.map(([, valor]) => valor),
                     backgroundColor: totais.map((_, i) => CORES_GRAFICO[i % CORES_GRAFICO.length]),
-                    borderColor: "#1E293B",
+                    borderColor: "#16213A",
                     borderWidth: 2
                 }]
             },
