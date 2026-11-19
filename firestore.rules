@@ -24,7 +24,7 @@ service cloud.firestore {
 
     // UID de quem administra o site (o mesmo de firebase-config.js)
     function administrador() {
-      return logado() && request.auth.uid == 'COLE-AQUI-O-SEU-UID';
+      return logado() && request.auth.uid == v1zs4Wg3HzQ0330Hge4h8FRA0g92;
     }
 
     function numeroEntre(v, minimo, maximo) {
